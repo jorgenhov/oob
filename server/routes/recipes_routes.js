@@ -2,22 +2,36 @@ var ObjectID = require('mongodb').ObjectID;
 
 module.exports = function(app, db) {
 
-  //search for recipe title
-  app.get('/recipe/spesific/:title', (req, res) => {
-    const title = req.params.title;
-    const details = {'title': {$regex : title}};
-    //change collection!
-    db.collection('test').find(details, (err, results) => {
+  //returns everything from selected category
+  app.get('/api/recipe/category/:category', (req, res) => {
+    const category = req.params.category;
+    const details = {'category': { '$regex' : category, '$options': 'i'}};
+    //change collection
+    db.collection('test').find(details).toArray(function (err, results) {
       if(err) {
         res.send({'error': 'An error occurred'});
       } else {
-        res.send(results);
+        res.send(JSON.stringify(results));
+      }
+    })
+  })
+
+  //search for recipe title
+  app.get('/api/recipe/title/:title', (req, res) => {
+    const title = req.params.title;
+    const details = {'title': { '$regex' : title, '$options' : 'i' }};
+    //change collection!
+    db.collection('test').find(details).toArray(function (err, results) {
+      if(err) {
+        res.send({'error': 'An error occurred'});
+      } else {
+        res.send(JSON.stringify(results));
       }
     })
   })
 
   //return spesific recipes by id
-  app.get('/recipe/:id', (req, res) => {
+  app.get('/api/recipe/id/:id', (req, res) => {
     const id = req.params.id;
     const details = {'_id': new ObjectID(id) };
     //change collection!
@@ -31,7 +45,7 @@ module.exports = function(app, db) {
   })
 
   //return all recipes
-  app.get('/recipe/all', (req, res) => {
+  app.get('/api/recipe/all', (req, res) => {
     //change collection!
     db.collection('test').find({}).toArray(function (err, results) {
       if(err) {
@@ -43,9 +57,9 @@ module.exports = function(app, db) {
   })
 
   //add recipe
-  app.post('/recipe/add', (req, res) => {
+  app.post('/api/recipe/add', (req, res) => {
     const recipe = req.body;
-    if(recipe.title && recipe.fields && recipe.desc) {
+    if(recipe.category && recipe.title && recipe.fields && recipe.desc) {
       //change collection!
       db.collection('test').insertOne(recipe, (err, results) => {
         if(err){
